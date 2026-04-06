@@ -1308,3 +1308,142 @@ php artisan serve
 
 **Business Autonomy (1):**
 - Digital Twin → 9 AI executives, human-in-the-loop, zero dependencies
+
+---
+
+## Analisi Decisionale
+
+### Metodologia di Scoring
+
+Ogni repository è valutato su **8 criteri** con punteggio 1–5 e pesi dichiarati. I punteggi sono basati su evidenze verificabili nel codice sorgente, nella documentazione e nei metadati GitNexus analizzati.
+
+| Criterio | Peso | Cosa misura |
+|----------|------|-------------|
+| **Qualità Architetturale** | 20% | Separazione concerns, pattern, coesione moduli (GitNexus communities/edges ratio) |
+| **Estensibilità** | 15% | Plugin system, API pubbliche, customizzabilità senza fork |
+| **Sovranità Dati** | 10% | Self-host, local-first, nessun vendor lock-in obbligatorio |
+| **Maturità Ecosistema** | 15% | Versione, community, documentazione, test coverage |
+| **Licenza & Libertà** | 10% | Permissività licenza, limitazioni commerciali |
+| **Complessità Operativa** | 10% | Dipendenze infrastrutturali, effort di deploy/manutenzione |
+| **Potenziale Enterprise** | 10% | SSO, RBAC, audit, multi-tenancy, compliance |
+| **Velocità Prototipazione** | 10% | Time-to-first-value, semplicità onboarding |
+
+**Scala:** 1 = Insufficiente, 2 = Sotto la media, 3 = Nella media, 4 = Sopra la media, 5 = Eccellente
+
+### Matrice di Scoring
+
+| Repository | Arch. (20%) | Estens. (15%) | Sovranità (10%) | Maturità (15%) | Licenza (10%) | Compless. (10%) | Enterprise (10%) | Velocità (10%) | **Score** |
+|-----------|:-----------:|:-------------:|:---------------:|:--------------:|:-------------:|:---------------:|:----------------:|:--------------:|:---------:|
+| **CrewAI** | 4 | 5 | 3 | 4 | 5 | 4 | 3 | 5 | **4.10** |
+| **nanobot** | 4 | 4 | 5 | 2 | 5 | 5 | 1 | 5 | **3.75** |
+| **PM4Py** | 3 | 3 | 5 | 5 | 2 | 5 | 2 | 4 | **3.55** |
+| **Open Notebook** | 4 | 3 | 5 | 3 | 5 | 3 | 2 | 4 | **3.60** |
+| **AFFiNE** | 5 | 4 | 5 | 3 | 5 | 2 | 3 | 2 | **3.70** |
+| **Agency Swarm** | 3 | 4 | 3 | 3 | 5 | 4 | 2 | 5 | **3.55** |
+| **Activepieces** | 4 | 5 | 4 | 4 | 4 | 3 | 5 | 4 | **4.15** |
+| **AutoGen** | 5 | 4 | 3 | 3 | 5 | 3 | 3 | 3 | **3.65** |
+| **Torq** | 5 | 3 | 5 | 2 | 5 | 5 | 1 | 4 | **3.70** |
+| **Digital Twin** | 4 | 5 | 5 | 3 | 3 | 4 | 4 | 3 | **3.85** |
+| **Vexa** | 4 | 3 | 5 | 2 | 5 | 2 | 3 | 2 | **3.25** |
+| **Atomic CRM** | 3 | 4 | 4 | 3 | 5 | 4 | 3 | 5 | **3.75** |
+| **Krayin CRM** | 4 | 4 | 5 | 4 | 5 | 3 | 4 | 3 | **3.95** |
+
+### Giustificazione Punteggi Chiave
+
+**Qualità Architetturale — 5/5:**
+- **AFFiNE**: CRDT-first con y-octo (Rust), block architecture, 1,992 communities GitNexus su 48K nodi = alta modularità. *Fonte: `.gitnexus/meta.json`, `blocksuite/` engine, `Cargo.toml` workspace*
+- **AutoGen**: Actor model puro con CloudEvents, layered API (Core → AgentChat → Extensions), protobuf cross-language. *Fonte: `docs/design/01 - Programming Model.md`, `protos/`*
+- **Torq**: Separazione pulita `torq-core` (Rust puro) / `torq-py` (PyO3 thin wrapper), 29 communities su 755 nodi = massima coesione. *Fonte: `Cargo.toml` workspace, `torq-core/src/lib.rs`*
+
+**Estensibilità — 5/5:**
+- **CrewAI**: Tool decorator (`@tool`), `BaseTool` class, MCP, custom prompts, YAML config, `@CrewBase` metaclass. *Fonte: `lib/crewai/src/crewai/tools/`, `lib/crewai-tools/`*
+- **Activepieces**: 280+ pieces come npm packages indipendenti, CLI scaffolding, `pieces-framework` type-safe. *Fonte: `packages/pieces/community/`, `packages/cli/`*
+- **Digital Twin**: 13 Claude Code skills, JSON workflow engine, hand marketplace, package lifecycle. *Fonte: `.claude/skills/`, `scripts/marketplace/`, `shared/schemas/`*
+
+**Sovranità Dati — 5/5 (self-hosted, zero cloud lock-in):**
+- nanobot, PM4Py, Open Notebook, AFFiNE, Torq, Digital Twin, Vexa, Krayin CRM — tutti deployabili al 100% on-premise senza dipendenze cloud obbligatorie
+
+**Licenza — 2/5:**
+- **PM4Py**: AGPL-3.0 richiede open-sourcing di lavori derivati; licenza commerciale separata necessaria per prodotti closed-source. *Fonte: `LICENSE`*
+
+**Complessità Operativa — 2/5 (alta complessità):**
+- **AFFiNE**: Richiede Node.js + Rust toolchain + PostgreSQL + pgvector + Redis + Yarn 4 + NAPI.rs build. *Fonte: `BUILDING.md`, `rust-toolchain.toml`, `.docker/dev/compose.yml`*
+- **Vexa**: 8+ microservizi Docker, Docker-in-Docker per bots, PostgreSQL + Redis + MinIO. *Fonte: `docker-compose.yml`, `services/`*
+
+**Potenziale Enterprise — 5/5:**
+- **Activepieces**: SSO SAML, RBAC, network-gapped self-host, custom branding, audit trail, EE license. *Fonte: `packages/ee/`, `packages/server/api/`*
+
+### Vista 1: Miglior Framework per Agent Orchestration
+
+| Rank | Repository | Score Ponderato | Raccomandazione |
+|:----:|-----------|:--------------:|-----------------|
+| 1 | **CrewAI** | 4.10 | **Best overall.** Crews + Flows coprono sia autonomia che controllo. Benchmark 5.76x vs LangGraph (fonte: README). MCP nativo. Ideale per orchestrazione multi-agent in produzione. |
+| 2 | **AutoGen** | 3.65 | **Best per sistemi distribuiti.** Actor model + gRPC runtime = unico framework con vera distribuzione. Ma Microsoft sta spostando focus su Agent Framework — rischio di stagnazione. |
+| 3 | **Agency Swarm** | 3.55 | **Best per rapid prototyping.** Metafora organizzativa intuitiva, 92% test coverage, AG-UI per demo immediate. Locked su OpenAI (litellm opzionale). |
+| 4 | **nanobot** | 3.75 | **Best per personal assistant.** Non è un orchestrator — è un agente singolo con canali e memory. Eccellente per bot 1:1, non per multi-agent workflows. |
+
+**Verdetto:** Per Firmamento, **CrewAI** è il riferimento da studiare per pattern di orchestrazione. Il sistema Crew/Flow ha lo stesso approccio "autonomy + control" del Digital Twin (proactive cycle + human approval), ma con un'API più matura.
+
+### Vista 2: Miglior Base per Prodotto Self-Hosted
+
+| Rank | Repository | Score Ponderato | Raccomandazione |
+|:----:|-----------|:--------------:|-----------------|
+| 1 | **Activepieces** | 4.15 | **Best platform.** 280+ integrazioni, MCP built-in, visual builder, EE features. Deployment Docker/k8s maturo. PGLite per single-container. |
+| 2 | **Krayin CRM** | 3.95 | **Best CRM tradizionale.** Laravel 12, modular monolith, 16 moduli indipendenti. PHP deployabile ovunque. Custom attributes senza code changes. |
+| 3 | **Digital Twin** | 3.85 | **Most innovative.** Zero dependencies, git-as-message-bus, 23 security layers. Unico nel suo genere. Ma BUSL-1.1 limita uso produzione altrui. |
+| 4 | **Open Notebook** | 3.60 | **Best NotebookLM alternative.** SurrealDB + 18 AI providers. Docker compose semplice. Manca SSO/RBAC per enterprise. |
+| 5 | **AFFiNE** | 3.70 | **Most ambitious.** Notion+Miro killer. Ma complessità operativa altissima (Rust+Node+PG+Redis). |
+
+**Verdetto:** **Activepieces** è il prodotto self-hosted più completo e production-ready. Per CRM, **Krayin** batte Atomic CRM per funzionalità enterprise. Il **Digital Twin** è l'unico prodotto senza competitori diretti nel suo segmento.
+
+### Vista 3: Benchmark vs Progetti Firmamento
+
+#### Torq vs Mercato Vector Search
+
+| Aspetto | Torq | FAISS (Meta) | hnswlib | USearch |
+|---------|------|-------------|---------|--------|
+| Compact mode (drop raw vectors) | **Si** (unico) | No | No | No |
+| Quantizzazione | TurboQuant (scalar, 3.2x vs PQ) | Product Quantization | No built-in | Scalar+PQ |
+| Memory savings | **75%** con 0.5pp recall loss | ~75% ma recall peggiore | N/A | ~50% |
+| Filtered search | Si | Si (IDSelector) | No | Si |
+| Soft delete | Si | No (rebuild) | No (rebuild) | Si |
+| Rust native | **Si** | C++ | C++ | C++ |
+| Python zero-copy | **Si** (PyO3) | Si (SWIG) | Si (pybind11) | Si (pybind11) |
+
+*Fonti: `benchmark_vs_faiss.py`, `benchmark_real.py` nel repo Torq; README con recall tables.*
+
+**Posizionamento Torq:** L'unica libreria ANN con compact mode che elimina i vettori raw post-indexing. Questo è un differenziatore reale per deployment memory-constrained (edge, mobile, IoT). La debolezza è la maturità (v0.1.0, nessuna community esterna).
+
+#### Digital Twin vs Framework Agentici
+
+| Aspetto | Digital Twin | CrewAI | AutoGen | Agency Swarm |
+|---------|-------------|--------|---------|-------------|
+| Human-in-the-loop | **Nativo** (queue approval) | Opzionale | Opzionale | No |
+| Business state persistence | **Git-versioned JSON** | No built-in | SQLite/PG | Callbacks |
+| External dependencies | **Zero** (stdlib only) | UV + many | Many | OpenAI SDK |
+| Agent specialization | **9 C-suite + 26 specialists** | User-defined | User-defined | User-defined |
+| Autonomous scheduling | **Cron 30min tick** | No | No | No |
+| Budget governance | **Built-in** (per-agent limits) | No | No | Usage tracking only |
+| Security layers | **23** (AES vault, RBAC, CSRF) | Basic | Basic | Basic |
+| Test coverage | **724 tests** | Tests present | Tests present | 92% coverage |
+| LLM providers | **10** (pure urllib) | Multi (litellm) | Multi (extensions) | OpenAI + litellm |
+| Licenza | BUSL-1.1 | MIT | MIT | MIT |
+
+*Fonti: `tests/` directory count, `scripts/engine/` providers, `shared/schemas/` count, `.twin/queue/` structure.*
+
+**Posizionamento Digital Twin:** Non compete con i framework agentici — è un **prodotto verticale** per business autonomy. I framework sono toolkit; il Twin è un sistema completo con business logic embedded. Il vantaggio competitivo è il zero-dependency stack + human-in-the-loop nativo + git-as-bus. La debolezza è la licenza BUSL che impedisce a terzi di usarlo in produzione senza accordo commerciale.
+
+### Raccomandazioni Strategiche per Firmamento
+
+1. **Torq → Accelerare verso v1.0.** Il compact mode è un vero differenziatore. Priorità: benchmark pubblici su dataset standard (SIFT1M, GloVe), documentazione su crates.io, CI con GitHub Actions per build automatiche.
+
+2. **Digital Twin → Considerare dual licensing.** BUSL-1.1 protegge l'IP ma limita adozione. Un modello MIT core + commercial extensions (come Activepieces) potrebbe accelerare la community mantenendo la monetizzazione.
+
+3. **Pattern da adottare da altri repository:**
+   - Da CrewAI: `@CrewBase` decorator pattern per configurazione dichiarativa degli agent
+   - Da Activepieces: "Pieces as npm packages" — ogni integrazione come modulo indipendente e versionato
+   - Da AFFiNE: CRDT per collaboration — applicabile al Twin per multi-user editing dello stato `.twin/`
+   - Da nanobot: Dream memory pattern (consolidator + dream cycle) — il Twin ha già un ciclo creativo simile, ma senza la separazione formale consolidator/dream
+   - Da AutoGen: Actor model per distribuzione — quando il Twin dovrà scalare oltre single-instance
+
+4. **Attenzione a:** AutoGen è in fase di transizione verso Microsoft Agent Framework. Agency Swarm dipende fortemente da OpenAI. Entrambi presentano rischi di lock-in che i progetti Firmamento evitano by design.
