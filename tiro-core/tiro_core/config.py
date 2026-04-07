@@ -1,14 +1,16 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+asyncpg://tiro:tiro_dev_2026@localhost:5432/tiro"
+    database_url: str  # no default — must be in .env
+    jwt_secret: str  # no default — must be in .env
+    admin_password: str  # no default — must be in .env
+
     redis_url: str = "redis://localhost:6379/0"
-    jwt_secret: str = "cambiami-in-produzione"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 480
     admin_email: str = "admin@firmamentotechnologies.com"
-    admin_password: str = "cambiami"
 
     # Celery
     celery_broker_url: str = "redis://localhost:6379/1"
@@ -53,6 +55,24 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = "tiro@firmamentotechnologies.com"
     dashboard_url: str = "http://localhost:3000"
+
+    @field_validator("jwt_secret")
+    @classmethod
+    def jwt_secret_non_default(cls, v: str) -> str:
+        if v in ("cambiami-in-produzione", "cambiami-in-produzione-con-valore-sicuro"):
+            raise ValueError("JWT_SECRET deve essere impostato con un valore sicuro in .env")
+        if len(v) < 32:
+            raise ValueError("JWT_SECRET deve essere almeno 32 caratteri")
+        return v
+
+    @field_validator("admin_password")
+    @classmethod
+    def admin_password_non_default(cls, v: str) -> str:
+        if v in ("cambiami", "changeme", "password", "admin"):
+            raise ValueError("ADMIN_PASSWORD deve essere impostato con un valore sicuro in .env")
+        if len(v) < 8:
+            raise ValueError("ADMIN_PASSWORD deve essere almeno 8 caratteri")
+        return v
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

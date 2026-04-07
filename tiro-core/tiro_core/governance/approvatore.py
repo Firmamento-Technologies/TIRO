@@ -162,7 +162,12 @@ async def rifiuta_proposta(
     utente: Utente,
     motivo: str = "",
 ) -> Proposta:
-    """Rifiuta una proposta."""
+    """Rifiuta una proposta. Verifica che l'utente abbia i permessi.
+
+    Raises:
+        ValueError: Se proposta non trovata o non in_attesa.
+        PermissionError: Se ruolo utente insufficiente per il livello.
+    """
     result = await session.execute(
         select(Proposta).where(Proposta.id == proposta_id)
     )
@@ -171,6 +176,14 @@ async def rifiuta_proposta(
         raise ValueError(f"Proposta {proposta_id} non trovata")
     if proposta.stato != "in_attesa":
         raise ValueError(f"Proposta {proposta_id} non e in attesa")
+
+    # Verifica ruolo — stessa logica di approva_proposta
+    ruoli_autorizzati = ruoli_approvatori(proposta.livello_rischio)
+    if ruoli_autorizzati and utente.ruolo not in ruoli_autorizzati:
+        raise PermissionError(
+            f"Ruolo '{utente.ruolo}' non autorizzato per livello "
+            f"'{proposta.livello_rischio}'. Richiesto: {', '.join(ruoli_autorizzati)}"
+        )
 
     proposta.stato = "rifiutata"
     proposta.approvato_da = utente.email

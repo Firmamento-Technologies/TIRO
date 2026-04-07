@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from tiro_core.api.dipendenze import get_utente_corrente
@@ -8,11 +8,22 @@ from tiro_core.modelli.sistema import Utente
 
 router = APIRouter(prefix="/ricerca", tags=["ricerca"])
 
+VECTOR_DIMENSION = 1536
+
 
 class RicercaRequest(BaseModel):
     vettore: list[float]
-    limite: int = 10
+    limite: int = Field(default=10, ge=1, le=100)
     tabella: str = "flussi"
+
+    @field_validator("vettore")
+    @classmethod
+    def valida_dimensione_vettore(cls, v: list[float]) -> list[float]:
+        if len(v) != VECTOR_DIMENSION:
+            raise ValueError(
+                f"Dimensione vettore deve essere {VECTOR_DIMENSION}, ricevuto {len(v)}"
+            )
+        return v
 
 
 class RisultatoRicerca(BaseModel):

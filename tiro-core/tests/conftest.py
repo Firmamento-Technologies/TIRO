@@ -1,3 +1,13 @@
+import os
+import secrets
+
+# Set required env vars BEFORE importing any tiro_core module that reads config at import time.
+# These must pass the validators in config.py.
+_test_jwt_secret = secrets.token_hex(32)
+os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://tiro:tiro_dev_2026@localhost:5432/tiro")
+os.environ.setdefault("JWT_SECRET", _test_jwt_secret)
+os.environ.setdefault("ADMIN_PASSWORD", "TestAdmin2026!")
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
