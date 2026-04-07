@@ -215,6 +215,13 @@ export const RootAppSidebar = memo((): ReactElement => {
         <AppSidebarJournalButton />
         {sessionStatus === 'authenticated' && <NotificationButton />}
         <AIChatButton />
+        {/* ── TIRO navigation ── */}
+        <MenuLinkItem to="/tiro-cruscotto">Cruscotto</MenuLinkItem>
+        <MenuLinkItem to="/tiro-soggetti">Soggetti</MenuLinkItem>
+        <MenuLinkItem to="/tiro-pipeline">Pipeline</MenuLinkItem>
+        <MenuLinkItem to="/tiro-proposte">Proposte</MenuLinkItem>
+        <MenuLinkItem to="/tiro-ricerca">Ricerca</MenuLinkItem>
+        <MenuLinkItem to="/tiro-sistema">Sistema</MenuLinkItem>
         <MenuItem
           data-testid="slider-bar-workspace-setting-button"
           icon={<SettingsIcon />}

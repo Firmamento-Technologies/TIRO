@@ -1,6 +1,44 @@
 import type { RouteObject } from 'react-router-dom';
 
 export const workbenchRoutes = [
+  // ── TIRO routes ────────────────────────────────────────────────────────────
+  {
+    path: '/tiro-cruscotto',
+    lazy: () => import('./pages/workspace/tiro-cruscotto/index'),
+  },
+  {
+    path: '/tiro-soggetti',
+    lazy: () => import('./pages/workspace/tiro-soggetti/index'),
+  },
+  {
+    path: '/tiro-soggetti/:id',
+    lazy: () => import('./pages/workspace/tiro-soggetto-dettaglio/index'),
+  },
+  {
+    path: '/tiro-pipeline',
+    lazy: () => import('./pages/workspace/tiro-pipeline/index'),
+  },
+  {
+    path: '/tiro-fascicoli',
+    lazy: () => import('./pages/workspace/tiro-fascicoli/index'),
+  },
+  {
+    path: '/tiro-ricerca',
+    lazy: () => import('./pages/workspace/tiro-ricerca/index'),
+  },
+  {
+    path: '/tiro-proposte',
+    lazy: () => import('./pages/workspace/tiro-proposte/index'),
+  },
+  {
+    path: '/tiro-sistema',
+    lazy: () => import('./pages/workspace/tiro-sistema/index'),
+  },
+  {
+    path: '/tiro-login',
+    lazy: () => import('./pages/workspace/tiro-login/index'),
+  },
+  // ── AFFiNE routes (original) ───────────────────────────────────────────────
   {
     path: '/chat',
     lazy: () => import('./pages/workspace/chat/index'),
