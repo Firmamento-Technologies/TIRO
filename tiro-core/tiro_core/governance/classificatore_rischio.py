@@ -60,7 +60,7 @@ def ruoli_approvatori(livello: str) -> list[str]:
     """
     matrice = {
         "basso": [],
-        "medio": ["responsabile"],
+        "medio": ["responsabile", "titolare"],
         "alto": ["responsabile", "titolare"],
         "critico": ["titolare"],
     }
