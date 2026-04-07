@@ -211,11 +211,10 @@ export const RootAppSidebar = memo((): ReactElement => {
           />
           <AddPageButton />
         </div>
-        <AllDocsButton />
-        <AppSidebarJournalButton />
-        {sessionStatus === 'authenticated' && <NotificationButton />}
-        <AIChatButton />
         {/* ── TIRO navigation ── */}
+        <div style={{ padding: '8px 12px 4px', fontWeight: 700, fontSize: 15, letterSpacing: 1, color: 'var(--affine-text-primary-color)' }}>
+          TIRO
+        </div>
         <MenuLinkItem to="/tiro-cruscotto">Cruscotto</MenuLinkItem>
         <MenuLinkItem to="/tiro-soggetti">Soggetti</MenuLinkItem>
         <MenuLinkItem to="/tiro-pipeline">Pipeline</MenuLinkItem>
