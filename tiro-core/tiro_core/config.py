@@ -35,6 +35,12 @@ class Settings(BaseSettings):
     dedup_hash_algorithm: str = "sha256"
     classification_confidence_threshold: float = 0.6
 
+    # Intelligenza
+    fascicolo_max_flussi_recenti: int = 50  # quanti flussi recenti includere nel fascicolo
+    fascicolo_llm_timeout_sec: int = 30
+    openrouter_api_key: str = ""
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 
