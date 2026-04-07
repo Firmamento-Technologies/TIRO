@@ -1,11 +1,14 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from tiro_core.database import init_db
+from tiro_core.database import init_db, async_session
+from tiro_core.seed import seed_database
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    async with async_session() as session:
+        await seed_database(session)
     yield
 
 
