@@ -52,7 +52,7 @@ class TestNotificaRedis:
 
         mock_redis.publish.assert_called_once()
         args = mock_redis.publish.call_args
-        assert "nanobot:invio" in args[0][0]
+        assert "tiro:comandi:whatsapp" in args[0][0]
 
 
 class TestNotificaEmail:
