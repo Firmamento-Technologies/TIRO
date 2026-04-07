@@ -46,6 +46,36 @@ services:
     networks:
       - tiro-network
 
+  celery-worker:
+    build:
+      context: ./tiro-core
+      dockerfile: Dockerfile
+    command: celery -A tiro_core.celery_app worker --loglevel=info --concurrency=2
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./tiro-core:/app
+    networks:
+      - tiro-network
+
+  celery-beat:
+    build:
+      context: ./tiro-core
+      dockerfile: Dockerfile
+    command: celery -A tiro_core.celery_app beat --loglevel=info
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./tiro-core:/app
+    networks:
+      - tiro-network
+
 volumes:
   postgres_data:
 
