@@ -89,8 +89,53 @@ services:
     networks:
       - tiro-network
 
+  # Bridge WhatsApp — richiede SYS_ADMIN per bubblewrap sandbox
+  nanobot:
+    build:
+      context: ./nanobot
+      dockerfile: Dockerfile
+    volumes:
+      - nanobot_data:/home/nanobot/.nanobot
+    environment:
+      - NANOBOT_REDIS__ENABLED=true
+      - NANOBOT_REDIS__URL=redis://redis:6379/0
+      - NANOBOT_REDIS_INBOUND_CHANNEL=nanobot:messaggi
+      - NANOBOT_REDIS_OUTBOUND_CHANNEL=tiro:comandi:whatsapp
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    ports:
+      - "18790:18790"
+    depends_on:
+      redis:
+        condition: service_healthy
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor=unconfined
+      - seccomp=unconfined
+    networks:
+      - tiro-network
+
+  # Trascrizione vocale locale — fallback per audio non-WhatsApp
+  whisper:
+    build:
+      context: ./whisper
+      dockerfile: Dockerfile
+    environment:
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+    ports:
+      - "9000:9000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/salute"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    networks:
+      - tiro-network
+
 volumes:
   postgres_data:
+  nanobot_data:     # Sessione WhatsApp + config persistente
 
 networks:
   tiro-network:
