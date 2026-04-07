@@ -16,6 +16,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from tiro_core.api.router import api_router  # noqa: E402
+app.include_router(api_router)
+
 
 @app.get("/salute")
 async def salute():
