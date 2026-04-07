@@ -41,6 +41,16 @@ class Settings(BaseSettings):
     openrouter_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
+    # Governance - Notifiche
+    nanobot_invio_channel: str = "nanobot:invio"
+    notifiche_ws_channel: str = "tiro:notifiche:proposte"
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "tiro@firmamentotechnologies.com"
+    dashboard_url: str = "http://localhost:3000"
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 
