@@ -28,5 +28,6 @@ async def init_db():
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS commerciale"))
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS decisionale"))
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS sistema"))
+        await conn.execute(text("CREATE SCHEMA IF NOT EXISTS operativo"))
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)

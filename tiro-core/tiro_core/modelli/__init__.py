@@ -4,10 +4,12 @@ from tiro_core.modelli.decisionale import Proposta, SessioneDecisionale, Memoria
 from tiro_core.modelli.sistema import (
     Registro, Configurazione, RegolaRischio, Utente, PermessoCustom
 )
+from tiro_core.modelli.operativo import Task
 
 __all__ = [
     "Soggetto", "Flusso", "Risorsa",
     "Ente", "Opportunita", "Interazione", "Fascicolo",
     "Proposta", "SessioneDecisionale", "MemoriaAgente",
     "Registro", "Configurazione", "RegolaRischio", "Utente", "PermessoCustom",
+    "Task",
 ]

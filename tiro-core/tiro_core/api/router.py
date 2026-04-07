@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from tiro_core.api import auth, soggetti, flussi, opportunita, fascicoli, proposte, ricerca, sistema, eventi_ws
+from tiro_core.api import auth, soggetti, flussi, opportunita, fascicoli, proposte, ricerca, sistema, eventi_ws, task
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(auth.router)
@@ -11,3 +11,4 @@ api_router.include_router(proposte.router)
 api_router.include_router(ricerca.router)
 api_router.include_router(sistema.router)
 api_router.include_router(eventi_ws.router)
+api_router.include_router(task.router)

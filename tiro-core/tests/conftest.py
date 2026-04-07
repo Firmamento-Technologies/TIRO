@@ -36,6 +36,7 @@ async def db_session():
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS commerciale"))
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS decisionale"))
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS sistema"))
+        await conn.execute(text("CREATE SCHEMA IF NOT EXISTS operativo"))
         await conn.run_sync(Base.metadata.create_all)
 
     async with session_factory() as session:
