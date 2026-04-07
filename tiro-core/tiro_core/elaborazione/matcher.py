@@ -1,7 +1,7 @@
-"""Match soggetti per email, telefono, o nome (exact + fuzzy Levenshtein)."""
+"""Match soggetti per email, telefono, o nome (exact + fuzzy pg_trgm)."""
 import logging
-from Levenshtein import ratio as levenshtein_ratio
-from sqlalchemy import select, or_
+from Levenshtein import ratio as levenshtein_ratio  # kept for backward compatibility
+from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tiro_core.config import settings
@@ -40,7 +40,10 @@ async def match_soggetto_fuzzy(
     nome_completo: str,
     soglia: int | None = None,
 ) -> Soggetto | None:
-    """Cerca soggetto con match fuzzy Levenshtein su nome+cognome.
+    """Cerca soggetto con match fuzzy pg_trgm su nome+cognome (DB-side).
+
+    Usa similarity() di PostgreSQL pg_trgm per calcolare il match interamente
+    nel DB, sfruttando l'indice GIN trigram per evitare full-table-scan Python.
 
     Args:
         session: Sessione database async.
@@ -51,26 +54,22 @@ async def match_soggetto_fuzzy(
         Soggetto con score piu alto sopra la soglia, o None.
     """
     threshold = (soglia or settings.fuzzy_match_threshold) / 100.0
-    query = select(Soggetto)
-    result = await session.execute(query)
+    nome_concat = func.concat(Soggetto.nome, ' ', Soggetto.cognome)
+    result = await session.execute(
+        select(Soggetto)
+        .where(func.similarity(nome_concat, nome_completo) > threshold)
+        .order_by(func.similarity(nome_concat, nome_completo).desc())
+        .limit(5)
+    )
     soggetti = result.scalars().all()
-
-    miglior_match: Soggetto | None = None
-    miglior_score: float = 0.0
-
-    for soggetto in soggetti:
-        nome_db = f"{soggetto.nome} {soggetto.cognome}".strip().lower()
-        score = levenshtein_ratio(nome_completo.lower(), nome_db)
-        if score > miglior_score and score >= threshold:
-            miglior_score = score
-            miglior_match = soggetto
-
-    if miglior_match:
+    if soggetti:
+        miglior_match = soggetti[0]
         logger.info(
-            "Fuzzy match trovato: '%s' -> soggetto_id=%d (score=%.2f)",
-            nome_completo, miglior_match.id, miglior_score,
+            "Fuzzy match trovato (pg_trgm): '%s' -> soggetto_id=%d",
+            nome_completo, miglior_match.id,
         )
-    return miglior_match
+        return miglior_match
+    return None
 
 
 async def match_o_crea_soggetto(

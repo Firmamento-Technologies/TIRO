@@ -3,10 +3,11 @@
 Determina quando avviare un ciclo di analisi LLM basandosi sul numero
 di flussi con richiede_review_llm=true non ancora revisionati.
 """
+import json
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tiro_core.modelli.core import Flusso
@@ -24,7 +25,7 @@ async def verifica_trigger(
     """Verifica se il numero di flussi non revisionati ha raggiunto la soglia.
 
     Cerca flussi con dati_grezzi.richiede_review_llm == true e
-    dati_grezzi.revisionato_il assente o null.
+    dati_grezzi.revisionato_llm assente o false — in una singola query.
 
     Args:
         session: Sessione database asincrona.
@@ -38,21 +39,14 @@ async def verifica_trigger(
     result = await session.execute(
         select(Flusso.id).where(
             Flusso.dati_grezzi["richiede_review_llm"].as_boolean() == True,  # noqa: E712
+            # Exclude already reviewed: key absent OR value is not 'true'
+            (
+                ~Flusso.dati_grezzi.has_key("revisionato_llm")  # noqa: W601
+                | (Flusso.dati_grezzi["revisionato_llm"].as_boolean() != True)  # noqa: E712
+            ),
         )
     )
-    tutti_ids = [row[0] for row in result.all()]
-
-    # Filtra solo quelli non ancora revisionati
-    ids_non_revisionati = []
-    for fid in tutti_ids:
-        result2 = await session.execute(
-            select(Flusso).where(Flusso.id == fid)
-        )
-        flusso = result2.scalar_one_or_none()
-        if flusso is not None:
-            revisionato = flusso.dati_grezzi.get("revisionato_llm", False)
-            if not revisionato:
-                ids_non_revisionati.append(fid)
+    ids_non_revisionati = [row[0] for row in result.all()]
 
     trigger_attivato = len(ids_non_revisionati) >= soglia
     if trigger_attivato:
@@ -71,7 +65,7 @@ async def segna_revisionati(
     """Segna i flussi indicati come revisionati dal ciclo LLM.
 
     Imposta dati_grezzi.revisionato_llm = true e
-    dati_grezzi.revisionato_il = timestamp UTC.
+    dati_grezzi.revisionato_il = timestamp UTC — in un singolo bulk UPDATE.
 
     Args:
         session: Sessione database asincrona.
@@ -84,22 +78,16 @@ async def segna_revisionati(
         return 0
 
     ora = datetime.now(timezone.utc).isoformat()
-    aggiornati = 0
+    patch = json.dumps({"revisionato_llm": True, "revisionato_il": ora})
 
-    for fid in flussi_ids:
-        result = await session.execute(
-            select(Flusso).where(Flusso.id == fid)
-        )
-        flusso = result.scalar_one_or_none()
-        if flusso is not None:
-            nuovi_dati = dict(flusso.dati_grezzi)
-            nuovi_dati["revisionato_llm"] = True
-            nuovi_dati["revisionato_il"] = ora
-            flusso.dati_grezzi = nuovi_dati
-            aggiornati += 1
-
-    if aggiornati > 0:
-        await session.flush()
-        logger.info("Segnati %d flussi come revisionati da ciclo LLM", aggiornati)
-
-    return aggiornati
+    await session.execute(
+        text("""
+            UPDATE core.flussi
+            SET dati_grezzi = dati_grezzi || cast(:patch as jsonb)
+            WHERE id = ANY(:ids)
+        """),
+        {"patch": patch, "ids": flussi_ids},
+    )
+    await session.commit()
+    logger.info("Segnati %d flussi come revisionati da ciclo LLM", len(flussi_ids))
+    return len(flussi_ids)

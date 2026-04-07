@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from tiro_core.api.dipendenze import get_utente_corrente
@@ -13,12 +13,15 @@ router = APIRouter(prefix="/soggetti", tags=["soggetti"])
 @router.get("", response_model=list[SoggettoResponse])
 async def lista_soggetti(
     tipo: str | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
     utente: Utente = Depends(get_utente_corrente),
 ):
-    query = select(Soggetto)
+    query = select(Soggetto).order_by(Soggetto.id)
     if tipo:
         query = query.where(Soggetto.tipo == tipo)
+    query = query.limit(limit).offset(offset)
     result = await db.execute(query)
     return result.scalars().all()
 

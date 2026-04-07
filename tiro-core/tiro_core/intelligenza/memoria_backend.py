@@ -20,11 +20,18 @@ logger = logging.getLogger(__name__)
 
 
 def _make_sync_session(database_url: str) -> Session:
-    """Crea una sessione SQLAlchemy sincrona."""
+    """Crea una sessione SQLAlchemy sincrona (mantenuto per compatibilita test)."""
     sync_url = database_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
     engine = create_engine(sync_url, pool_pre_ping=True)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     return factory()
+
+
+def _make_sync_factory(database_url: str) -> sessionmaker:
+    """Crea factory SQLAlchemy sincrona con engine condiviso (chiamato una volta sola)."""
+    sync_url = database_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
+    engine = create_engine(sync_url, pool_pre_ping=True, pool_size=5, max_overflow=10)
+    return sessionmaker(bind=engine, expire_on_commit=False)
 
 
 def _record_to_memoria(record: MemoryRecord, session_obj: Session) -> MemoriaAgente:
@@ -73,9 +80,15 @@ class PostgresStorageBackend:
 
     def __init__(self, database_url: str) -> None:
         self._db_url = database_url
+        # Factory is created lazily on first use to avoid psycopg2 import errors
+        # when the class is instantiated in tests without a real DB driver.
+        self._factory: sessionmaker | None = None
 
     def _session(self) -> Session:
-        return _make_sync_session(self._db_url)
+        """Ritorna una sessione dal factory condiviso (lazy init del factory)."""
+        if self._factory is None:
+            self._factory = _make_sync_factory(self._db_url)
+        return self._factory()
 
     def save(self, records: list[MemoryRecord]) -> None:
         """Salva records di memoria nel DB."""

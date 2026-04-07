@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     embedding_api_url: str = "http://ollama:11434/api/embeddings"
     openai_api_key: str = ""
     spacy_model: str = "it_core_news_md"
-    fuzzy_match_threshold: int = 80  # soglia Levenshtein (0-100)
+    fuzzy_match_threshold: int = 70  # soglia similarita pg_trgm (0-100); 70 ≈ 0.70 similarity
     dedup_hash_algorithm: str = "sha256"
     classification_confidence_threshold: float = 0.6
 

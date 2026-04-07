@@ -45,7 +45,7 @@ def make_mock_memoria(record: MemoryRecord):
 class TestPostgresStorageBackend:
     """Test per PostgresStorageBackend."""
 
-    def _make_backend(self, session_mock=None):
+    def _make_backend(self):
         from tiro_core.intelligenza.memoria_backend import PostgresStorageBackend
         backend = PostgresStorageBackend(
             database_url="postgresql+asyncpg://test:test@localhost/test"
@@ -60,7 +60,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalar_one_or_none.return_value = None
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             backend.save([record])
 
         mock_session.add.assert_called_once()
@@ -75,7 +75,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalar_one_or_none.return_value = existing_mock
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             backend.save([record])
 
         # Non deve aggiungere un nuovo oggetto, solo aggiornare il valore
@@ -91,7 +91,7 @@ class TestPostgresStorageBackend:
         mock_session.execute.return_value.scalar_one_or_none.return_value = None
         mock_session.commit.side_effect = RuntimeError("DB error")
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             with pytest.raises(RuntimeError):
                 backend.save([record])
 
@@ -106,7 +106,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalar_one_or_none.return_value = existing_mock
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             result = backend.get_record("abc-123")
 
         assert result is not None
@@ -120,7 +120,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalar_one_or_none.return_value = None
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             result = backend.get_record("inesistente")
 
         assert result is None
@@ -135,7 +135,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalars.return_value.all.return_value = [existing_mock]
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             n = backend.delete(record_ids=["da-eliminare"])
 
         assert n == 1
@@ -151,7 +151,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalars.return_value.all.return_value = [existing_mock]
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             n = backend.delete(record_ids=["altro-id"])
 
         assert n == 0
@@ -173,7 +173,7 @@ class TestPostgresStorageBackend:
             source=record.source,
         )
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             backend.update(record_updated)
 
         mock_session.commit.assert_called_once()
@@ -186,7 +186,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalar_one_or_none.return_value = None
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             with pytest.raises(ValueError):
                 backend.update(make_record(record_id="non-esiste"))
 
@@ -199,7 +199,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalars.return_value.all.return_value = [existing_mock]
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             results = backend.search(query_embedding=[0.1] * 10)
 
         assert len(results) == 1
@@ -218,7 +218,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalars.return_value.all.return_value = records
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             n = backend.count()
 
         assert n == 5
@@ -232,7 +232,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalar_one_or_none.return_value = None
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             await backend.asave([record])
 
         mock_session.commit.assert_called_once()
@@ -245,7 +245,7 @@ class TestPostgresStorageBackend:
         mock_session = MagicMock()
         mock_session.execute.return_value.scalars.return_value.all.return_value = []
 
-        with patch("tiro_core.intelligenza.memoria_backend._make_sync_session", return_value=mock_session):
+        with patch.object(backend, "_session", return_value=mock_session):
             results = await backend.asearch(query_embedding=[0.1] * 10)
 
         assert results == []
