@@ -76,6 +76,19 @@ services:
     networks:
       - tiro-network
 
+  tiro-ui:
+    build:
+      context: ./tiro-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - TIRO_API_URL=http://tiro-core:8000
+    depends_on:
+      - tiro-core
+    networks:
+      - tiro-network
+
 volumes:
   postgres_data:
 
