@@ -42,7 +42,10 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
     # Governance - Notifiche
-    nanobot_invio_channel: str = "nanobot:invio"
+    # Canale outbound verso Nanobot (TIRO → WhatsApp):
+    # allineato con RedisBridge.outbound_channel in Nanobot
+    nanobot_invio_channel: str = "tiro:comandi:whatsapp"
+    nanobot_gateway_url: str = "http://nanobot:18790"
     notifiche_ws_channel: str = "tiro:notifiche:proposte"
     smtp_host: str = ""
     smtp_port: int = 587
